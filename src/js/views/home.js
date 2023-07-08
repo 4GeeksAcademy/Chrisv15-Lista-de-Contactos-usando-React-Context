@@ -10,11 +10,11 @@ export const Home = () => {
 
   return (
     <div className="container">
-      <div class="row g-0 pt-3">
-        <div class="col-sm-10 col-md-10">
+      <div className="row g-0 pt-3">
+        <div className="col-sm-10 col-md-10">
           <h1>Contact List</h1>
         </div>
-        <div class="col-2 col-md-2">
+        <div className="col-2 col-md-2">
           <Link to="/add-contact" className="btn btn-primary">
             Add Contact
           </Link>

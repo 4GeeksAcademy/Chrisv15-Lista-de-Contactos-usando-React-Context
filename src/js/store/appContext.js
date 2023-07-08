@@ -90,5 +90,5 @@ const injectContext = PassedComponent => {
 
   return StoreWrapper;
 };
-
+export const useContactContext = () => useContext(Context);
 export default injectContext;
