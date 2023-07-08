@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from "react";
-
 export async function loadContacts() {
 
     try {

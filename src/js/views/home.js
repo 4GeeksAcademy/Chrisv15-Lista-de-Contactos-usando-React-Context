@@ -10,15 +10,21 @@ export const Home = () => {
 
   return (
     <div className="container">
-      <h1>Contact List</h1>
+      <div class="row g-0 pt-3">
+        <div class="col-sm-10 col-md-10">
+          <h1>Contact List</h1>
+        </div>
+        <div class="col-2 col-md-2">
+          <Link to="/add-contact" className="btn btn-primary">
+            Add Contact
+          </Link>
+        </div>
+      </div>
       <div className="row">
         {contacts.map(contact => (
           <ContactCard key={contact.id} contact={contact} onDelete={() => actions.deleteContact(contact.id)} />
         ))}
       </div>
-      <Link to="/add-contact" className="btn btn-primary">
-        Add Contact
-      </Link>
     </div>
   );
 };
