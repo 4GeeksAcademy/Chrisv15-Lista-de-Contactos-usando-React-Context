@@ -1,105 +1,93 @@
 import React, { useState, useEffect } from "react";
 import getState from "./flux.js";
+import { loadContacts, createContact, updateContact, deleteContact } from "./store.js";
 
 export const Context = React.createContext(null);
 
-const AppContext = ({ children }) => {
-  const [store, setStore] = useState({
-    contacts: []
-  });
+const injectContext = PassedComponent => {
+  const StoreWrapper = props => {
+    const [state, setState] = useState(
+      getState({
+        getStore: () => state.store,
+        getActions: () => state.actions,
+        setStore: updatedStore =>
+          setState({
+            store: Object.assign(state.store, updatedStore),
+            actions: { ...state.actions }
+          })
+      })
+    );
 
-  useEffect(() => {
-    loadContacts();
-  }, []);
+    useEffect(() => {
+      loadContacts()
+        .then(data => {
+          setState(prevState => ({
+            store: { ...prevState.store, contacts: data },
+            actions: { ...prevState.actions }
+          }));
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }, []);
 
-  const loadContacts = async () => {
-    try {
-      const response = await fetch("https://assets.breatheco.de/apis/fake/contact/agenda/chrisdv15-agenda");
-      if (!response.ok) {
-        throw new Error("Failed to fetch contacts");
+    const actions = {
+      loadContacts: () => {
+        loadContacts()
+          .then(data => {
+            setState(prevState => ({
+              store: { ...prevState.store, contacts: data },
+              actions: { ...prevState.actions }
+            }));
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      },
+      createContact: async newContact => {
+        const createdContact = await createContact(newContact);
+        if (createdContact) {
+          setState(prevState => ({
+            store: { ...prevState.store, contacts: [...prevState.store.contacts, createdContact] },
+            actions: { ...prevState.actions }
+          }));
+        }
+      },
+      updateContact: async (contactId, updatedContact) => {
+        const updated = await updateContact(contactId, updatedContact);
+        if (updated) {
+          setState(prevState => ({
+            store: {
+              ...prevState.store,
+              contacts: prevState.store.contacts.map(contact =>
+                contact.id === contactId ? updated : contact
+              )
+            },
+            actions: { ...prevState.actions }
+          }));
+        }
+      },
+      deleteContact: async contactId => {
+        const deleted = await deleteContact(contactId);
+        if (deleted) {
+          setState(prevState => ({
+            store: {
+              ...prevState.store,
+              contacts: prevState.store.contacts.filter(contact => contact.id !== contactId)
+            },
+            actions: { ...prevState.actions }
+          }));
+        }
       }
-      const data = await response.json();
-      setStore(prevState => ({ ...prevState, contacts: data }));
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    };
 
-  const createContact = async (newContact) => {
-    try {
-      const response = await fetch("https://assets.breatheco.de/apis/fake/contact/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(newContact)
-      });
-      if (!response.ok) {
-        throw new Error("Failed to create contact");
-      }
-      const data = await response.json();
-      setStore(prevState => ({ ...prevState, contacts: [...prevState.contacts, data] }));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const updateContact = async (contactId, updatedContact) => {
-    try {
-      const response = await fetch(`https://assets.breatheco.de/apis/fake/contact/${contactId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(updatedContact)
-      });
-      if (!response.ok) {
-        throw new Error("Failed to update contact");
-      }
-      const data = await response.json();
-      setStore(prevState => ({
-        ...prevState,
-        contacts: prevState.contacts.map(contact =>
-          contact.id === contactId ? data : contact
-        )
-      }));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const deleteContact = async (contactId) => {
-    try {
-      const response = await fetch(`https://assets.breatheco.de/apis/fake/contact/${contactId}`, {
-        method: "DELETE"
-      });
-      if (!response.ok) {
-        throw new Error("Failed to delete contact");
-      }
-      setStore(prevState => ({
-        ...prevState,
-        contacts: prevState.contacts.filter(contact => contact.id !== contactId)
-      }));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  return (
-    <Context.Provider value={{ store, actions: { createContact, updateContact, deleteContact } }}>
-      {children}
-    </Context.Provider>
-  );
-};
-
-const injectContext = (PassedComponent) => {
-  const StoreWrapper = (props) => {
     return (
-      <AppContext>
+      <Context.Provider value={{ store: state.store, actions }}>
         <PassedComponent {...props} />
-      </AppContext>
+      </Context.Provider>
     );
   };
+
   return StoreWrapper;
 };
 
