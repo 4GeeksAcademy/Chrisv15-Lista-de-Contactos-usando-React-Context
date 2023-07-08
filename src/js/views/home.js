@@ -1,15 +1,25 @@
-import React from "react";
-import rigoImage from "../../img/rigo-baby.jpg";
-import "../../styles/home.css";
+import React, { useContext } from "react";
+import { Link } from "react-router-dom";
+import { Context } from "../store/appContext";
+import ContactCard from "../component/contactCard";
 
-export const Home = () => (
-	<div className="text-center mt-5">
-		<h1>Hello Rigo!</h1>
-		<p>
-			<img src={rigoImage} />
-		</p>
-		<a href="#" className="btn btn-success">
-			If you see this green button, bootstrap is working
-		</a>
-	</div>
-);
+export const Home = () => {
+	const { store, actions } = useContext(Context);
+  
+	const contacts = store.contacts || []; // Verificar si store.contacts es undefined y proporcionar un valor predeterminado []
+  
+	return (
+	  <div className="container">
+		<h1>Contact List</h1>
+		<div className="row">
+		  {store.contacts.map(contact => (
+			<ContactCard key={contact.id} contact={contact} onDelete={actions.deleteContact} />
+		  ))}
+		</div>
+		<Link to="/add-contact" className="btn btn-primary">
+		  Add Contact
+		</Link>
+	  </div>
+	);
+  };
+  
