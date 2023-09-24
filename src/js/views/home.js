@@ -5,8 +5,9 @@ import ContactCard from "../component/contactCard";
 
 export const Home = () => {
   const { store, actions } = useContext(Context);
-
-  let contacts = store.contacts || [];
+	useEffect(() => {
+		actions.loadContacts();
+	}, [store.contacts]);
 
   return (
     <div className="container">
@@ -21,7 +22,7 @@ export const Home = () => {
         </div>
       </div>
       <div className="row">
-        {contacts.map(contact => (
+        {store.contacts && store.contacts.map(contact => (
           <ContactCard key={contact.id} contact={contact} onDelete={() => actions.deleteContact(contact.id)} />
         ))}
       </div>
